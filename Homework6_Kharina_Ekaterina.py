@@ -1,11 +1,6 @@
-from tkinter import *
-from tkinter import messagebox as mb
+import tkinter as tk
 from tkinter import ttk
 import requests
-import json
-import pprint
-
-from bottle import response
 
 
 def update_currency_label(event):
@@ -19,11 +14,6 @@ def update_base_label(event):
     name = currencies[code]
     base_label.config(text=name)
 
-def update_base_label_2(event):
-    code = base_combobox_2.get()
-    name = currencies[code]
-    base_label_2.config(text=name)
-
 
 def exchange():
     target_code = target_combobox.get().strip()
@@ -32,10 +22,10 @@ def exchange():
     if target_code and base_code and base_code_2:
         try:
 
-            response = requests.get(f'https://open.er-api.com/v6/latest/{base_code}')
+            response = requests.get(f' https://www.coingecko.com/en/api/{base_code}')
             response.raise_for_status()
             data = response.json()
-            response_2 = requests.get(f'https://open.er-api.com/v6/latest/{base_code_2}')
+            response_2 = requests.get(f' https://www.coingecko.com/en/api/{base_code_2}')
             response_2.raise_for_status()
             data_2 = response_2.json()
             if target_code in data['rates'] and target_code in data_2['rates']:
@@ -58,18 +48,14 @@ def exchange():
 
 
 currencies = {
-    'EUR': 'Евро',
-    'USD': 'Доллар США',
-    'JPY': 'Японская йена',
-    'GBP': 'Фунт стерлингов',
-    'AUD': 'Австралийский доллар',
-    'CAD': 'Канадский доллар',
-    'CHF': 'Швейцарский франк',
-    'CNY': 'Китайский юань',
-    'RUB': 'Российский рубль',
-    'KZT': 'Казахстанский тенге',
-    'UZS': 'Узбекский сум'
-
+    'BTC': 'Bitcoin',
+    'ETH': 'Ethereum',
+    'SOL': 'Solana',
+    'BNB': 'Binancecoin',
+    'XRP': 'Ripple',
+    'ADA': 'Cardano',
+    'DOGE': 'Dogecoin',
+    'DOT': 'Polkadot',
 }
 
 root = Tk()
@@ -89,7 +75,6 @@ base_combobox_2.pack(pady=3, padx=10)
 base_combobox_2.bind('<<ComboboxSelected>>', update_base_label_2)
 base_label_2 = ttk.Label()
 base_label_2.pack()
-
 
 Label(root, text='Целевая валюта').pack(padx=10)
 target_combobox = ttk.Combobox(root, values=list(currencies.keys()))
