@@ -1,13 +1,24 @@
+"""
+Иптортируем библиотеки
+"""
 from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox as mb
-import requests
+from tkinter import ttk  # Библиотека виджетов
+from tkinter import messagebox as mb  # Библиотека всплывающих окон
+import requests  # Библиотека для работы с HTTP-запросами (API, JSON)
+
+from IAR import fetch_price
+
+"""
+Функции для работы с курсом
+"""
+def update_crypto_label(event):  # Срабатывает когда пользоватьель выбрал валюту в списке
+    code = crypto_combobox.get()  # Берет короткое имя криптовалюты, которое выбрал пользователь
+    if code:  # Проверяет, что пользоватьель что-то выбрал
+        name = currencies[code]  # По короткому имени находит полное название криптовалюты
+    crypto_label.config(text=name)  # Показывает это название на экране
 
 
-def update_crypto_label(event):
-    code = crypto_combobox.get()
-    name = currencies[code]
-    crypto_label.config(text=name)
+
 
 
 def exchange():
@@ -34,6 +45,9 @@ def exchange():
         mb.showwarning('Внимание', 'Выберите криптовалюту')
 
 
+"""
+Список криптовалют
+"""
 currencies = {
     'BTC': 'Bitcoin',
     'ETH': 'Ethereum',
@@ -56,9 +70,13 @@ coingecko_ids = {
     'DOT': 'polkadot',
 }
 
-root = Tk()
-root.title('Курс криптовалют к USD')
-root.geometry('360x140')
+
+"""
+Создаем окно
+"""
+root = Tk()  # Создаем главное окно программы
+root.title('Курс криптовалют к USD')  # Указываем название окна (вверху слева)
+root.geometry('600x400')  # Задаем размер окна ширина х высота
 
 Label(root, text='Криптовалюта').pack()
 crypto_combobox = ttk.Combobox(root, values=list(currencies.keys()))
