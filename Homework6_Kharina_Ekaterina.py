@@ -1,5 +1,6 @@
-import tkinter as tk
+from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox as mb
 import requests
 
 
@@ -9,34 +10,27 @@ def update_currency_label(event):
     target_label.config(text=name)
 
 
-def update_base_label(event):
-    code = base_combobox.get()
+def update_crypto_label(event):
+    code = crypto_combobox.get()
     name = currencies[code]
-    base_label.config(text=name)
+    crypto_label.config(text=name)
 
 
 def exchange():
     target_code = target_combobox.get().strip()
-    base_code = base_combobox.get().strip()
-    base_code_2 = base_combobox_2.get().strip()
-    if target_code and base_code and base_code_2:
+    crypto_code = crypto_combobox.get().strip()
+    if target_code and crypto_code:
         try:
-
-            response = requests.get(f' https://www.coingecko.com/en/api/{base_code}')
+            response = requests.get('https://api.coingecko.com/api/v3/simple/price',
+                                    params={"ids": crypto_code, "vs_currencies": target_code.lower()})
             response.raise_for_status()
             data = response.json()
-            response_2 = requests.get(f' https://www.coingecko.com/en/api/{base_code_2}')
-            response_2.raise_for_status()
-            data_2 = response_2.json()
-            if target_code in data['rates'] and target_code in data_2['rates']:
-                exchange_rate = data['rates'][target_code]
-                exchange_rate_2 = data_2['rates'][target_code]
-                base = currencies[base_code]
-                base_2 = currencies[base_code_2]
+            if crypto_code in data and target_code.lower() in data[crypto_code]:
+                exchange_rate = data[crypto_code][target_code.lower()]
+                crypto = currencies[crypto_code]
                 target = currencies[target_code]
                 mb.showinfo('Курс обмена',
-                            f'Курс: {exchange_rate:.1f} {target} за 1 {base}\n'
-                            f'Курс: {exchange_rate_2:.1f} {target} за 1 {base_2}')
+                            f'Курс: {exchange_rate:.1f} {target} за 1 {crypto}')
             else:
                 mb.showerror('Ошибка',
                              f'Валюта {target_code} не найдена')
@@ -58,23 +52,27 @@ currencies = {
     'DOT': 'Polkadot',
 }
 
+coingecko_ids = {
+    'BTC': 'Bitcoin',
+    'ETH': 'Ethereum',
+    'SOL': 'Solana',
+    'BNB': 'Binancecoin',
+    'XRP': 'Ripple',
+    'ADA': 'Cardano',
+    'DOGE': 'Dogecoin',
+    'DOT': 'Polkadot',
+}
+
 root = Tk()
-root.title('Курс обмена валют USD')
+root.title('Курс обмена криптовалют USD')
 root.geometry('360x280')
 
-Label(root, text='Базовая валюта').pack()
-base_combobox = ttk.Combobox(root, values=list(currencies.keys()))
-base_combobox.pack(pady=3, padx=10)
-base_combobox.bind('<<ComboboxSelected>>', update_base_label)
-base_label = ttk.Label()
-base_label.pack()
-
-Label(root, text='Вторая базовая валюта').pack()
-base_combobox_2 = ttk.Combobox(root, values=list(currencies.keys()))
-base_combobox_2.pack(pady=3, padx=10)
-base_combobox_2.bind('<<ComboboxSelected>>', update_base_label_2)
-base_label_2 = ttk.Label()
-base_label_2.pack()
+Label(root, text='Крипто валюта').pack()
+crypto_combobox = ttk.Combobox(root, values=list(currencies.keys()))
+crypto_combobox.pack(pady=3, padx=10)
+crypto_combobox.bind('<<ComboboxSelected>>', update_crypto_label)
+crypto_label = ttk.Label()
+crypto_label.pack()
 
 Label(root, text='Целевая валюта').pack(padx=10)
 target_combobox = ttk.Combobox(root, values=list(currencies.keys()))
