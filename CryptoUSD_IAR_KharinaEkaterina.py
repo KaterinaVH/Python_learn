@@ -21,8 +21,7 @@ def exchange():  # Функция вызывается при нажатии н�
             data = response.json()  # Проверащаем ответ сервера JSON в ckjdfhm Python
             exchange_rate = float(data['price'])  # Достаем цену с сайта и превращаем строку в нецелочисленное число
             crypto = crypto_currencies[crypto_code]  # Находим в словаре полное название для подписи криптовалюты
-            mb.showinfo('Текущий курс обмена',
-                            f'Курс: {exchange_rate:.2f} USD за 1 {crypto}')  # Показваем окно с курсом (2 знака после запятой)
+            change_label.config (text = (f'Курс: {exchange_rate:.2f} USD за 1 {crypto}'))  # Показвает в главном окне курс обмена (2 знака после запятой)
         except Exception as er:  # На случай ошибки, отсутствия интернета, неверной пары и т.д.
             mb.showerror('Ошибка', er)  # Покажет окно с ошибкой
 
@@ -46,18 +45,22 @@ root = Tk()  # Создаем главное окно приложения
 root.title('Курс обмена криптовалют к USD')  # СОздаем заголовок окна
 root.geometry('360x200')  # Устанавлеваем размеры окна в пикселях
 
-Label(root, text='Выберите криптовалюту').pack(pady=5)  # pady отступ сверху
+Label(root, text='Выберите криптовалюту', font=("Arial", 14)).pack(pady=5)  # pady отступ сверху
 crypto_combobox = ttk.Combobox(root, values=list(crypto_currencies.keys()))  # Создаем виджет с выпадающим списком криптовалют
 crypto_combobox.pack(pady=3, padx=10)  # Размещаем виджет в созданном окне
 crypto_combobox.bind('<<ComboboxSelected>>', update_crypto_label)  # Привязываем действие при выборе криптовалюты
 
 
-crypto_label = ttk.Label()  # Создаем пустое место для дальнейшего размещения там полного названия криптовалюты
+crypto_label = ttk.Label(font=("Arial", 10))  # Создаем пустое место для дальнейшего размещения там полного названия криптовалюты
 crypto_label.pack()  # Размещаем это пустое место в окне
 
 
+change_label = ttk.Label(font=("Arial", 14))  # Создаем пустое место для дальнейшего размещения там запрашиваемого курса криптовалюты
+change_label.pack(pady=10)  # Размещаем это пустое место в окне
+
+
 Button(text='Получить текущий курс к USD',
-       command=exchange).pack(pady=15, padx=10)  # Создаем кнопку при нажатии вызывающую функцию exchange
+       command=exchange, font=("Arial", 10)).pack(pady=15, padx=10)  # Создаем кнопку при нажатии вызывающую функцию exchange
 
 
 root.mainloop()  # Запускаем главный цикл - окно остается открытым и реагирует на действия
