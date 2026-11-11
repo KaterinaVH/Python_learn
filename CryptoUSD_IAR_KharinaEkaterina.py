@@ -1,22 +1,45 @@
-from tkinter import *
-from tkinter import messagebox as mb
-from tkinter import ttk  # Импортируем виджеты (нам нужна для создания выпадающего списка)
-from tkinter.font import BOLD
+"""
+Приложение «Курс криптовалют».
 
+Показывает курс выбранной криптовалюты к USDT (≈ USD) и список всех курсов
+в отдельном окне. Данные берутся с публичного API Binance.
+"""
+
+import customtkinter as ctk  # Импортирует библиотеку для красивого и современного окна
+from tkinter import messagebox as mb  # Импортируем вспомогательные окна
 import requests  # Импортируем библиотеку для работы с запросами в интернет (API, JSON)
 
+ctk.set_appearance_mode("dark")  # тёмная тема
+ctk.set_default_color_theme("green")  # Делает акцент выбранного цвета для кнопок и полей
 
-def center_window (window, width, height):
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-    x = (screen_width - width) // 2
-    y = (screen_height - height) // 2
-    window.geometry(f'{width}x{height}+{x}+{y}')
+# """
+# Функция для размещения окна по центру экрана
+# """
+#
+#
+# def center_window(window, width, height):
+#     window.update_idletasks()  # Пересчитывает геометрию экрана
+#     screen_width = window.winfo_screenwidth()  # Узнаем ширину монитора
+#     screen_height = window.winfo_screenheight()  # Узнаем высоту монитора
+#     x = (screen_width - width) // 2  # Вычисляем левый край так, чтобы окно было посередине по горизонтали
+#     y = (screen_height - height) // 2  # Вычисляем верхний край так, чтобы оно было посередине по вертикали
+#     window.geometry(f'{width}x{height}+{x}+{y}')  # Применяем размер окна и его позицию
+#
 
-def update_crypto_label(event):  # Функция вызывается при выборе криптовалюты
+"""
+Показывает полное название криптовалюты при выборе ее из выпадающего списка
+"""
+
+
+def update_crypto_label(event):
     code = crypto_combobox.get()  # Получаем выбранный код криптовалюты
     name = crypto_currencies[code]  # По коду находим полное название криптовалюты
-    crypto_label.config(text=name)  # Подписываем название криптовалюты под списком
+    crypto_label.configure(text=name)  # Подписываем название криптовалюты под списком
+
+
+"""
+Запрашивает куры выбранной криптовалюты к USDT(обозначение USD на сайте) и выводит его в главное окно
+"""
 
 
 def exchange():  # Функция вызывается при нажатии на кнопку
@@ -25,12 +48,13 @@ def exchange():  # Функция вызывается при нажатии н�
         try:  # Пробуем выполнить запрос
             symbol = f'{crypto_code}USDT'  # Формируем название торговой пары  понятное выбранному сайту
             response = requests.get(f'https://api.binance.com/api/v3/ticker/price',
-                                    params={"symbol": symbol})  # ОТправляем запрос на сайт с выбранной парой
+                                    params={"symbol": symbol})  # Отправляем запрос на сайт с выбранной парой
             response.raise_for_status()  # Проверяем что сервер ответил, а не выдал ошибку
-            data = response.json()  # Проверащаем ответ сервера JSON в ckjdfhm Python
+            data = response.json()  # Проверащаем ответ сервера JSON в словарь Python
             exchange_price = float(data['price'])  # Достаем цену с сайта и превращаем строку в нецелочисленное число
             crypto = crypto_currencies[crypto_code]  # Находим в словаре полное название для подписи криптовалюты
-            change_label.config (text = (f'Курс: {exchange_price:.2f} USD за 1 {crypto}'))  # Показвает в главном окне курс обмена (2 знака после запятой)
+            change_label.configure(text=(f'Курс: {exchange_price:.2f} USD за 1 {crypto}'),
+                                   font=('SegoeUI', 20))  # Показвает в главном окне курс обмена (2 знака после запятой)
         except Exception as er:  # На случай ошибки, отсутствия интернета, неверной пары и т.д.
             mb.showerror('Ошибка', er)  # Покажет окно с ошибкой
 
@@ -38,37 +62,47 @@ def exchange():  # Функция вызывается при нажатии н�
         mb.showwarning('Внимание', 'Выберите криптовалюту')  # Покажет окно с ошибкой и подсказкой
 
 
+"""
+Открывает окно со всеми курсами и обновляет их каждые 5 секунд
+"""
+
+
 def exchange_all():  # Функция вызывается при нажатии на кнопку
-    crypto_code = crypto_combobox.get().strip()  # Убирает лишние пробелы в выбраном коде криптовалюты из словаря (при их наличии)
     try:  # Пробуем выполнить запрос
-        response = requests.get(f'https://api.binance.com/api/v3/ticker/price')  # ОТправляем запрос на сайт с выбранной парой
+        response = requests.get(
+            f'https://api.binance.com/api/v3/ticker/price')  # Отправляем запрос на сайт с выбранной парой
         response.raise_for_status()  # Проверяем что сервер ответил, а не выдал ошибку
 
-        window_all = Toplevel(root)  # Создаем новое окно поверх окна root
-        window_all.withdraw()
+        window_all = ctk.CTkToplevel(root)  # Создаем новое окно поверх окна root
+        window_all.withdraw()  # Скрываем вызванное окно пока идет настройка
         window_all.title('Все курсы криптовалют к USD')  # Подписываем имя нового окна
-        root.update_idletasks()  # обновляем геометрию главного окна, чтобы знать его точные размеры
-        new_w, new_h = 400, 600
 
-        # Координаты и размеры главного окна
-        main_x = root.winfo_x()
-        main_y = root.winfo_y()
-        main_w = root.winfo_width()
-        main_h = root.winfo_height()
+        root.update_idletasks()  # Пересчитывае размер главного окна
+        main_x = root.winfo_x()  # Узнаем левый край главного окна (root)
+        main_y = root.winfo_y()  # Узнаем верхний край главного окна (root)
+        main_w = root.winfo_width()  # Узнаем ширину главного окна (root)
+        main_h = root.winfo_height()  # Узнаем  высоту главного окна (root)
 
-        # Справа от главного, с отступом 10 px
-        new_x = main_x + main_w + 10
+        new_x = main_x + main_w + 10  # Ставим второе окно справа от главного
+        # center_y = main_y + main_h // 2  # Находим центр главного окна по вертикали
+        new_y = main_y  # Делаем так чтобы верх окон был на одной линии
+        window_all.geometry(f'420x620+{new_x}+{new_y}')  # Применяем размер и позицию нового окна
 
-        # По вертикали — центры совпадают
-        center_y = main_y + main_h // 2
-        new_y = center_y - new_h // 2
+        title = ctk.CTkLabel(window_all, text='Курсы криптовалют',
+                             font=('SegoeUI', 18, 'bold'))  # Создаем заголовок внутри второг окна
+        title.pack(pady=(20, 10))  # Размещаем заголовок с отступами вверху и внизу
 
-        window_all.geometry(f'{new_w}x{new_h}+{new_x}+{new_y}')
-        rates_label = Label(window_all, text='Загрузка...',
-                            font=("SegoeUI", 12), justify=LEFT)
-        rates_label.pack(pady=10, padx=10)
+        rates_label = ctk.CTkLabel(window_all, text='Загрузка...',
+                                   font=('SegoeUI', 12),
+                                   justify='left',
+                                   anchor='w')  # Создаем подпись для списка курсов(на случай долгой загрузки)
+        rates_label.pack(fill='both', expand=True, padx=20, pady=10)  # Растягиваем подпись на все окно
 
-        def refresh_rates():  # Функция обновления курсов в реальном времени
+        """
+        Обновляет список курсов и планирует следующее обновление через 5 секунд
+        """
+
+        def refresh_rates():  # Функция обновляет курсы каждые 5 секунд
             if not window_all.winfo_exists():  # Если окно закрыто — прекращаем обновление
                 return
 
@@ -76,30 +110,37 @@ def exchange_all():  # Функция вызывается при нажатии
                 resp = requests.get('https://api.binance.com/api/v3/ticker/price')  # Запрос цен всех пар
                 resp.raise_for_status()  # Проверяем, что сервер ответил
                 data = resp.json()  # Превращаем ответ в словарь
-                prices = {item['symbol']: item['price'] for item in data}  # Собираем пары «символ — цена»
-                lines = []
-                for code, name in crypto_currencies.items():
-                    symbol = f'{code}USDT'
-                    if symbol in prices:
-                        r = float(prices[symbol])
-                        lines.append(f'{name} ({code}): {r:.2f} USD\n')
-                    else:
-                        lines.append(f'{name} ({code}): пара не найдена')
+                prices = {item['symbol']: item['price'] for item in data}  # Собираем в словарь пары «символ — цена»
+                lines = []  # Создаем пустой список для дальнейшей подстановки туда списка курсов всех криптовалют
+                for code, name in crypto_currencies.items():  # Проходим по каждой криптовалюте из нашего словаря
+                    symbol = f'{code}USDT'  # Формируем пару криптовалюта/USD понятная сайту
+                    if symbol in prices:  # Если такая прара есть на сайте
+                        r = float(prices[symbol])  # Достаем цену и превращаем ее в число
+                        lines.append(f'{name} ({code}): {r:.2f} USD\n')  # Добавляем строку с курсом
+                    else:  # Сработает если пары нет
+                        lines.append(
+                            f'{name} ({code}): данные по запрашиваемой криптовалюте не найдены')  # Показвает текст ошибки
 
-                rates_label.config(text='\n'.join(lines))  # ОБНОВЛЯЕМ текст, а не создаём новый Label
-            except Exception as er:
-                    rates_label.config(text=f'Ошибка обновления: {er}')
+                rates_label.configure(text='\n'.join(lines), font=('SegoeUI', 14))  # Собирает список строк из словаря криптовалют и их стоимости и обновляет текст
+            except Exception as er:  # Если вдруг ошибка при обновлении
+                rates_label.configure(text=f'Ошибка обновления криптовалюты: {er}')  # Показывает ошибку
 
             window_all.after(5000, refresh_rates)  # следующее обновление через 5 секунд
 
-        refresh_rates()
+        refresh_rates()  # Запускаем сразу первое обновление
 
-        Button(window_all, text='Закрыть',
-                   command=window_all.destroy).pack(pady=8)
-        window_all.deiconify()
+        close_btn = ctk.CTkButton(window_all, text='Закрыть',
+                                  command=window_all.destroy,
+                                  font=('Segoe UI', 12, 'bold'),
+                                  fg_color='#e74c3c', hover_color='#c0392b',
+                                  corner_radius=8, height=40)  # Создаем кнопку Закрыть во втором окне
+        close_btn.pack(pady=20)  # Размещаем кнопку с отсупом
 
-    except Exception as er:
-        mb.showerror('Ошибка', er)
+        window_all.deiconify()  # Показываем заполненное окно
+
+    except Exception as er:  # Если будет ошибка при создании окна
+        mb.showerror('Ошибка', er)  # Показваем уведомление об ошибке
+
 
 crypto_currencies = {
     'BTC': 'Bitcoin',
@@ -120,29 +161,49 @@ crypto_currencies = {
     'ETC': 'Ethereum Classic',
 }  # Словарь ключ короткий code криптовалюты, значение полное название
 
-
-root = Tk()  # Создаем главное окно приложения
-root.title('Курс обмена криптовалют к USD')  # СОздаем заголовок окна
-center_window(root,360, 300)  # Устанавлеваем размеры окна в пикселях
-
-Label(root, text='Выберите криптовалюту', font=("SegoeUI", 14)).pack(pady=5)  # pady отступ сверху
-crypto_combobox = ttk.Combobox(root, values=list(crypto_currencies.keys()))  # Создаем виджет с выпадающим списком криптовалют
-crypto_combobox.pack(pady=3, padx=10)  # Размещаем виджет в созданном окне
-crypto_combobox.bind('<<ComboboxSelected>>', update_crypto_label)  # Привязываем действие при выборе криптовалюты
+root = ctk.CTk()  # Создает главное окно приложения
+root.title('Курс криптовалют')  # Прописываем заголовок окна
+root.geometry('400x480')  # Сначала задаём размер
+# root.after(100, lambda: center_window(root, 400, 480))  # Центрируем после отрисовки
 
 
-crypto_label = ttk.Label(font=("SegoeUI", 10))  # Создаем пустое место для дальнейшего размещения там полного названия криптовалюты
-crypto_label.pack()  # Размещаем это пустое место в окне
+title = ctk.CTkLabel(root, text='Курс криптовалют',
+                     font=('Segoe UI', 22, 'bold'))  # Создаем крупный заголовок в главном окне
+title.pack(pady=(25, 15))  # Размещаем заголовок с отступом
 
+ctk.CTkLabel(root, text='Выберите криптовалюту',
+             font=('Segoe UI', 12)).pack(anchor='w', padx=30)  # Создаем подпись под окном выбора криптовалюты
 
-change_label = ttk.Label(font=("SegoeUI", 14))  # Создаем пустое место для дальнейшего размещения там запрашиваемого курса криптовалюты
-change_label.pack(pady=10)  # Размещаем это пустое место в окне
+crypto_combobox = ctk.CTkComboBox(root, values=list(crypto_currencies.keys()),
+                                  font=('Segoe UI', 12),
+                                  dropdown_font=('Segoe UI', 12),
+                                  state='readonly')  # Создаем выпадающий список с криптовалютами из словаря
+crypto_combobox.pack(fill='x', padx=30, pady=(5, 8))  # Растгиваем список по ширине с отступами
+crypto_combobox.bind('<<ComboboxSelected>>', update_crypto_label)  # Вышывает функцию при выборе криптовалюты
 
+crypto_label = ctk.CTkLabel(root, text='', font=('Segoe UI', 12, 'italic'),
+                            text_color='gray')  # Создаем пустое пространство для подписи курса криптовалюты
+crypto_label.pack(pady=(0, 10))  # Размещаем подпись в главном окне
 
-Button(text='Получить курс выбраной валюты к USD',
-       command=exchange, font=("SegoeUI", 10)).pack(pady=15, padx=10)  # Создаем кнопку при нажатии вызывающую функцию exchange
+change_label = ctk.CTkLabel(root, text='—', font=('Segoe UI', 32, 'bold'),
+                            text_color='#2ecc71')  # Создаем крупный зеленый прочер который отображается пока не выбрали криптовалюту
+change_label.pack(pady=(10, 0))  # Размещаем подпись
 
+change_sub_label = ctk.CTkLabel(root, text='', font=('Segoe UI', 11),
+                                text_color='gray')  # Создаем место для подписикурса криптовалюты за 1 USD
+change_sub_label.pack(pady=(0, 20))  # Размещаем подпись
 
-Button(text='Получить текущий курс всех валют к USD',
-       command=exchange_all, font=("SegoeUI", 10)).pack(pady=15, padx=10)  # Создаем кнопку при нажатии вызывающую функцию exchange
-root.mainloop()  # Запускаем главный цикл - окно остается открытым и реагирует на действия
+btn1 = ctk.CTkButton(root, text='Курс выбранной валюты',
+                     command=exchange,
+                     font=('Segoe UI', 13, 'bold'),
+                     corner_radius=10, height=45)  # Кнопка получить курс
+btn1.pack(fill='x', padx=30, pady=(5, 10))  # Растягиваем кнопку по ширинк
+
+btn2 = ctk.CTkButton(root, text='Все курсы криптовалют',
+                     command=exchange_all,
+                     font=('Segoe UI', 13, 'bold'),
+                     fg_color='#27ae60', hover_color='#1e8449',
+                     corner_radius=10, height=45)  # Вторя кнопка Все курсы криптовалют
+btn2.pack(fill='x', padx=30, pady=(0, 25))  # Растягиваем кнопку по ширине
+
+root.mainloop()  # Запускаем главный цикл
